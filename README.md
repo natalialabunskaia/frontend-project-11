@@ -1,2 +1,7 @@
 ### Hexlet tests and linter status:
 [![Actions Status](https://github.com/natalialabunskaia/frontend-project-11/actions/workflows/hexlet-check.yml/badge.svg)](https://github.com/natalialabunskaia/frontend-project-11/actions)
+
+## Local development
+
+Проект запускается по адресу:  
+http://localhost:5173/

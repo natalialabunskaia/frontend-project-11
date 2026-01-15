@@ -10,11 +10,13 @@ i18nextInstance.init({
       translation: {
         errors: {
           invalidUrl: 'Ссылка должна быть валидным URL',
+          invalidRss: 'Ошибка RSS',
           duplicateRss: 'RSS уже существует',
+          networkError: 'Ошибка сети',
         },
         success: {
           valid: 'RSS успешно загружен',
-        },
+        }
       },
     },
   },

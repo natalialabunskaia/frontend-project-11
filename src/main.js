@@ -1,4 +1,5 @@
 import './style.css';
+import 'bootstrap';
 import * as yup from 'yup';
 import onChange from 'on-change';
 import render from './view.js';
@@ -25,13 +26,14 @@ const state = {
   feeds: [], // [{ id, url, title, description }]
   posts: [], //[{ id, feedId, title, link, description }]
   ui: {
-    seenPosts: [], // список просмотренных постов объект\массив?
+    activePostId: '',
+    seenPostsId: [],
   },
 };
 
 // из вебинара: реакция вотчера на стейт синхронная!
-const watchedState = onChange(state, () => {
-  render(state);
+const watchedState = onChange(state, (path) => {
+  render(watchedState, path);
 });
 
 const schema = yup.string().required().url();
@@ -56,6 +58,10 @@ const loadData = (url) => {
     .then((response) => parseRss(response.data.contents));
 };
 
+// const updateData = (url, state) => {
+
+// }
+
 const getError = (error) => {
   if (error.message === 'invalidRss') {
     return 'invalidRss';
@@ -69,7 +75,15 @@ const getError = (error) => {
 const form = document.querySelector('.rss-form.text-body');
 const input = document.getElementById('url-input');
 
-// controller
+const postsContainer = document.querySelector('.posts');
+
+postsContainer.addEventListener('click', (e) => {
+  const button = e.target.closest('button[data-bs-toggle="modal"]');
+  const id = button.dataset.id;
+  watchedState.ui.activePostId = id;
+  watchedState.ui.seenPostsId.push(id);
+});
+
 input.addEventListener('input', (e) => {
   watchedState.form.value = e.target.value;
   watchedState.form.isValid = false;
@@ -87,15 +101,14 @@ form.addEventListener('submit', (e) => {
       return loadData(url).then((parsedData) => {
         watchedState.loading.status = 'success';
         const id = nanoid(10);
-        watchedState.feeds.push({ id, url, ...parsedData.feed });
+        watchedState.feeds.unshift({ id, url, ...parsedData.feed });
         const dataWithId = parsedData.posts.map((post) => {
           post.id = nanoid(10);
           post.feedId = id;
           return { ...post, id: nanoid(10), feedId: id };
         });
-        watchedState.posts.push(...dataWithId);
+        watchedState.posts.unshift(...dataWithId);
         watchedState.loading.status = 'idle';
-        console.log('state:', state);
       });
     })
     .catch((error) => {
@@ -104,15 +117,10 @@ form.addEventListener('submit', (e) => {
         watchedState.form.isValid = false;
         watchedState.loading.status = 'idle';
         watchedState.loading.error = null;
-        console.log('FORM ERROR STATE:', watchedState.form);
-        console.log('LOADING STATE:', watchedState.loading);
         return;
       }
       watchedState.loading.status = 'failed';
       watchedState.loading.error = getError(error);
       watchedState.form.error = null;
-      console.log('LOADING STATE:', watchedState.loading);
     });
 });
-
-

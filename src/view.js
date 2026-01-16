@@ -40,29 +40,27 @@ const renderErrors = (state) => {
 };
 
 const renderFeeds = (feeds) => {
-
-  const feedsContainer = document.querySelector('.feeds'); 
+  const feedsContainer = document.querySelector('.feeds');
   feedsContainer.innerHTML = '';
   if (feeds.length === 0) {
-    return
+    return;
   }
 
-  const feedsCard = document.createElement('div'); 
+  const feedsCard = document.createElement('div');
   feedsCard.classList.add('card', 'border-0');
-  feedsContainer.appendChild(feedsCard); 
+  feedsContainer.appendChild(feedsCard);
 
-  const feedsCardBody = document.createElement('div'); 
+  const feedsCardBody = document.createElement('div');
   feedsCardBody.classList.add('card-body');
   const feedsTitle = document.createElement('h2');
   feedsTitle.classList.add('card-title', 'h4');
   feedsTitle.textContent = 'Фиды';
-  feedsCard.appendChild(feedsCardBody); 
+  feedsCard.appendChild(feedsCardBody);
   feedsCardBody.appendChild(feedsTitle);
 
-  const feedsList = document.createElement('ul'); 
+  const feedsList = document.createElement('ul');
   feedsList.classList.add('list-group', 'border-0', 'rounded-0');
-  feedsCard.appendChild(feedsList); 
-
+  feedsCard.appendChild(feedsList);
 
   feeds.forEach((feed) => {
     const liEl = document.createElement('li');
@@ -79,63 +77,101 @@ const renderFeeds = (feeds) => {
     description.textContent = feed.description;
     liEl.appendChild(description);
   });
-
 };
 
- const renderPosts = (posts) => {
-  const postsContainer = document.querySelector('.posts'); 
+const renderPosts = (posts) => {
+  const postsContainer = document.querySelector('.posts');
   postsContainer.innerHTML = '';
   if (posts.length === 0) {
-    return
+    return;
   }
 
-const postsCard = document.createElement('div'); 
+  const postsCard = document.createElement('div');
   postsCard.classList.add('card', 'border-0');
-  postsContainer.appendChild(postsCard); 
+  postsContainer.appendChild(postsCard);
 
-  const postsCardBody = document.createElement('div'); 
+  const postsCardBody = document.createElement('div');
   postsCardBody.classList.add('card-body');
   const postsTitle = document.createElement('h2');
   postsTitle.classList.add('card-title', 'h4');
   postsTitle.textContent = 'Посты';
-  postsCard.appendChild(postsCardBody); 
+  postsCard.appendChild(postsCardBody);
   postsCardBody.appendChild(postsTitle);
 
-  const postsList = document.createElement('ul'); 
+  const postsList = document.createElement('ul');
   postsList.classList.add('list-group', 'border-0', 'rounded-0');
-  postsCard.appendChild(postsList); 
+  postsCard.appendChild(postsList);
 
   posts.forEach((post) => {
-    const liEl = document.createElement('li')
-    liEl.classList.add('list-group-item', 'd-flex', 'justify-content-between', 'align-items-start', 'border-0', 'border-end-0')
-    const aEl = document.createElement('a')
-    aEl.setAttribute('href', post.link)
-    aEl.setAttribute('data-id', post.id)
-    aEl.setAttribute('target', '_blank')
-    aEl.setAttribute('rel', 'noopener noreferrer')
-    aEl.textContent = post.title
-    aEl.classList.add('fw-bold')
-    liEl.appendChild(aEl)
+    const title = document.createElement('li');
+    title.classList.add(
+      'list-group-item',
+      'd-flex',
+      'justify-content-between',
+      'align-items-start',
+      'border-0',
+      'border-end-0'
+    );
+    const link = document.createElement('a');
+    link.setAttribute('href', post.link);
+    link.setAttribute('data-id', post.id);
+    link.setAttribute('target', '_blank');
+    link.setAttribute('rel', 'noopener noreferrer');
+    link.textContent = post.title;
+    link.classList.add('fw-bold');
+    title.appendChild(link);
 
-    const button = document.createElement('button')
-    button.setAttribute('type', 'button')
-    button.classList.add('btn', 'btn-outline-primary', 'btn-sm')
-    button.setAttribute('data-id', post.id)
-    button.setAttribute('data-bs-toggle', 'modal')
-    button.setAttribute('data-bs-target', '#modal')
-    button.textContent = 'Просмотр'
-    liEl.appendChild(button)
+    const button = document.createElement('button');
+    button.setAttribute('type', 'button');
+    button.classList.add('btn', 'btn-outline-primary', 'btn-sm');
+    button.setAttribute('data-id', post.id);
+    button.setAttribute('data-bs-toggle', 'modal');
+    button.setAttribute('data-bs-target', '#modal');
+    button.textContent = 'Просмотр';
+    title.appendChild(button);
 
-    postsList.appendChild(liEl)
-  })
-  
-  
-}
+    postsList.appendChild(title);
+    console.log('renderPosts called');
+  });
+};
 
-const render = (state) => {
+// нажатая кнопка
+// <a href="http://example.com/test/1768570380"
+// class="fw-normal link-secondary" data-id="2" target="_blank"
+//  rel="noopener noreferrer">Lorem ipsum 2026-01-16T13:33:00Z</a>
+
+// не нажатая кнопка
+// <a href="http://example.com/test/1768570200"
+// class="fw-bold" data-id="5" target="_blank"
+// rel="noopener noreferrer">Lorem ipsum 2026-01-16T13:30:00Z</a>
+
+const renderModalWindow = (ui, posts) => {
+  const activePostId = ui.activePostId;
+  if (!ui.activePostId) return;
+
+  const post = posts.find((p) => p.id === activePostId);
+
+  const link = document.querySelector(`a[data-id="${ui.activePostId}"]`);
+  link.classList.remove('fw-bold')
+  link.classList.add('fw-normal', 'link-secondary')
+
+  const modalTitle = document.querySelector('.modal-title');
+  modalTitle.textContent = post.title;
+
+  const modalDescription = document.querySelector('.modal-body.text-break');
+  modalDescription.textContent = post.description;
+
+  const modalButtonLink = document.querySelector(
+    '.btn.btn-primary.full-article'
+  );
+  modalButtonLink.setAttribute('href', post.link);
+};
+
+const render = (state, path) => {
   renderErrors(state);
-  renderFeeds(state.feeds);
-  renderPosts(state.posts)
+  if (path === 'feeds') renderFeeds(state.feeds);
+  if (path === 'posts') renderPosts(state.posts);
+  if (path === 'ui.activePostId') renderModalWindow(state.ui, state.posts);
 };
 
 export default render;

@@ -58,9 +58,33 @@ const loadData = (url) => {
     .then((response) => parseRss(response.data.contents));
 };
 
-// const updateData = (url, state) => {
+const updateData = (feeds, posts) => {
+  const requests = feeds.map((feed) => {
+    return loadData(feed.url).then((parsedData) => ({
+        feedId: feed.id, 
+        posts: parsedData.posts
+    }))
+  });
+  return Promise.all(requests)
+  .then((results) => {
+    const existingLinks = new Set(posts.map((post) => post.link))
+    console.log('existing links:', existingLinks)
 
-// }
+    const newPosts = results.flatMap(({ feedId, posts}) => 
+      posts.filter((post) => !existingLinks.has(post.link))
+      .map((post) => ({
+        ...post,
+        id: nanoid(10),
+        feedId,
+      }))
+    );
+    console.log('new posts', newPosts)
+    if (newPosts.length > 0 ) {
+      watchedState.posts.unshift(...newPosts)
+    }
+    console.log('updated state:', state.posts);
+  });
+};
 
 const getError = (error) => {
   if (error.message === 'invalidRss') {
@@ -90,7 +114,6 @@ postsContainer.addEventListener('click', (e) => {
   if (link) {
     const id = link.dataset.id;
     watchedState.ui.seenPostsId.push(id);
-
   }
   return;
 });
@@ -114,12 +137,11 @@ form.addEventListener('submit', (e) => {
         const id = nanoid(10);
         watchedState.feeds.unshift({ id, url, ...parsedData.feed });
         const dataWithId = parsedData.posts.map((post) => {
-          post.id = nanoid(10);
-          post.feedId = id;
           return { ...post, id: nanoid(10), feedId: id };
         });
         watchedState.posts.unshift(...dataWithId);
         watchedState.loading.status = 'idle';
+        setTimeout(() => updateData(watchedState.feeds, watchedState.posts), 30000); // тут тестирую апдейт дату
       });
     })
     .catch((error) => {

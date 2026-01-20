@@ -79,7 +79,7 @@ const renderFeeds = (feeds) => {
   });
 };
 
-const renderPosts = (posts) => {
+const renderPosts = (posts, ui) => {
   const postsContainer = document.querySelector('.posts');
   postsContainer.innerHTML = '';
   if (posts.length === 0) {
@@ -118,8 +118,12 @@ const renderPosts = (posts) => {
     link.setAttribute('target', '_blank');
     link.setAttribute('rel', 'noopener noreferrer');
     link.textContent = post.title;
-    link.classList.add('fw-bold');
     title.appendChild(link);
+    if (ui.seenPostsId.includes(post.id)) {
+      link.classList.add('fw-normal', 'link-secondary');
+    } else {
+      link.classList.add('fw-bold');
+    }
 
     const button = document.createElement('button');
     button.setAttribute('type', 'button');
@@ -131,29 +135,14 @@ const renderPosts = (posts) => {
     title.appendChild(button);
 
     postsList.appendChild(title);
-    console.log('renderPosts called');
   });
 };
-
-// нажатая кнопка
-// <a href="http://example.com/test/1768570380"
-// class="fw-normal link-secondary" data-id="2" target="_blank"
-//  rel="noopener noreferrer">Lorem ipsum 2026-01-16T13:33:00Z</a>
-
-// не нажатая кнопка
-// <a href="http://example.com/test/1768570200"
-// class="fw-bold" data-id="5" target="_blank"
-// rel="noopener noreferrer">Lorem ipsum 2026-01-16T13:30:00Z</a>
 
 const renderModalWindow = (ui, posts) => {
   const activePostId = ui.activePostId;
   if (!ui.activePostId) return;
 
   const post = posts.find((p) => p.id === activePostId);
-
-  const link = document.querySelector(`a[data-id="${ui.activePostId}"]`);
-  link.classList.remove('fw-bold')
-  link.classList.add('fw-normal', 'link-secondary')
 
   const modalTitle = document.querySelector('.modal-title');
   modalTitle.textContent = post.title;
@@ -170,8 +159,9 @@ const renderModalWindow = (ui, posts) => {
 const render = (state, path) => {
   renderErrors(state);
   if (path === 'feeds') renderFeeds(state.feeds);
-  if (path === 'posts') renderPosts(state.posts);
+  if (path === 'posts' || path.startsWith('ui.seenPostsId')) renderPosts(state.posts, state.ui);
   if (path === 'ui.activePostId') renderModalWindow(state.ui, state.posts);
+
 };
 
 export default render;

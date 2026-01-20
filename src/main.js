@@ -79,9 +79,20 @@ const postsContainer = document.querySelector('.posts');
 
 postsContainer.addEventListener('click', (e) => {
   const button = e.target.closest('button[data-bs-toggle="modal"]');
-  const id = button.dataset.id;
-  watchedState.ui.activePostId = id;
-  watchedState.ui.seenPostsId.push(id);
+  const link = e.target.closest('a[data-id]');
+  if (button) {
+    const id = button.dataset.id;
+    watchedState.ui.activePostId = id;
+    watchedState.ui.seenPostsId.push(id);
+
+    return;
+  }
+  if (link) {
+    const id = link.dataset.id;
+    watchedState.ui.seenPostsId.push(id);
+
+  }
+  return;
 });
 
 input.addEventListener('input', (e) => {

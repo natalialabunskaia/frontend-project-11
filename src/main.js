@@ -31,7 +31,6 @@ const state = {
   },
 };
 
-// из вебинара: реакция вотчера на стейт синхронная!
 const watchedState = onChange(state, (path) => {
   render(watchedState, path);
 });
@@ -82,8 +81,9 @@ const updateData = (feeds, posts) => {
     if (newPosts.length > 0 ) {
       watchedState.posts.unshift(...newPosts)
     }
-    console.log('updated state:', state.posts);
-  });
+    console.log('updated state:', watchedState.posts);
+  })
+  .then(() => setTimeout(() => updateData(watchedState.feeds, watchedState.posts), 5000))
 };
 
 const getError = (error) => {
@@ -130,7 +130,7 @@ form.addEventListener('submit', (e) => {
     .then((url) => checkDuplicates(url, watchedState.feeds))
     .then((url) => {
       watchedState.form.isValid = true;
-      watchedState.loading.status = 'loading'; // чекнуть блокируется ли кнопка
+      watchedState.loading.status = 'loading'; 
       watchedState.form.error = null;
       return loadData(url).then((parsedData) => {
         watchedState.loading.status = 'success';
@@ -141,7 +141,7 @@ form.addEventListener('submit', (e) => {
         });
         watchedState.posts.unshift(...dataWithId);
         watchedState.loading.status = 'idle';
-        setTimeout(() => updateData(watchedState.feeds, watchedState.posts), 30000); // тут тестирую апдейт дату
+        updateData(watchedState.feeds, watchedState.posts); 
       });
     })
     .catch((error) => {

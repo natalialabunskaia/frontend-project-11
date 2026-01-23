@@ -15,6 +15,12 @@ const renderErrors = (state) => {
     feedback.classList.add('text-danger');
     input.classList.add('is-invalid');
   }
+  if (state.form.error === 'emptyUrl') {
+    feedback.textContent = i18nextInstance.t('errors.emptyUrl');
+    feedback.classList.remove('text-success');
+    feedback.classList.add('text-danger');
+    input.classList.add('is-invalid');
+  }
   if (state.loading.error === 'networkError') {
     feedback.textContent = i18nextInstance.t('errors.networkError');
     feedback.classList.remove('text-success');
@@ -110,7 +116,7 @@ const renderPosts = (posts, ui) => {
       'justify-content-between',
       'align-items-start',
       'border-0',
-      'border-end-0'
+      'border-end-0',
     );
     const link = document.createElement('a');
     link.setAttribute('href', post.link);
@@ -151,7 +157,7 @@ const renderModalWindow = (ui, posts) => {
   modalDescription.textContent = post.description;
 
   const modalButtonLink = document.querySelector(
-    '.btn.btn-primary.full-article'
+    '.btn.btn-primary.full-article',
   );
   modalButtonLink.setAttribute('href', post.link);
 };
@@ -159,9 +165,9 @@ const renderModalWindow = (ui, posts) => {
 const render = (state, path) => {
   renderErrors(state);
   if (path === 'feeds') renderFeeds(state.feeds);
-  if (path === 'posts' || path.startsWith('ui.seenPostsId')) renderPosts(state.posts, state.ui);
+  if (path === 'posts' || path.startsWith('ui.seenPostsId'))
+    renderPosts(state.posts, state.ui);
   if (path === 'ui.activePostId') renderModalWindow(state.ui, state.posts);
-
 };
 
 export default render;

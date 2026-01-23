@@ -4,4 +4,4 @@
 ## Local development
 
 Проект запускается по адресу:  
-http://localhost:5173/
+https://frontend-project-11-lovat-psi.vercel.app/

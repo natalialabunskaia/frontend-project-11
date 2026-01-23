@@ -35,7 +35,7 @@ const watchedState = onChange(state, (path) => {
   render(watchedState, path);
 });
 
-const schema = yup.string().required().url();
+const schema = yup.string().trim().required('emptyUrl').url('invalidUrl');
 
 const checkDuplicates = (url, feeds) => {
   if (feeds.some((element) => element.url === url)) {
@@ -48,7 +48,10 @@ const validate = (url) => {
   return schema
     .validate(url)
     .then(() => url)
-    .catch(() => Promise.reject('invalidUrl'));
+    .catch((err) => {
+
+      return Promise.reject(err.message);
+    });
 };
 
 const loadData = (url) => {
@@ -60,30 +63,36 @@ const loadData = (url) => {
 const updateData = (feeds, posts) => {
   const requests = feeds.map((feed) => {
     return loadData(feed.url).then((parsedData) => ({
-        feedId: feed.id, 
-        posts: parsedData.posts
-    }))
+      feedId: feed.id,
+      posts: parsedData.posts,
+    }));
   });
   return Promise.all(requests)
-  .then((results) => {
-    const existingLinks = new Set(posts.map((post) => post.link))
-    console.log('existing links:', existingLinks)
+    .then((results) => {
+      const existingLinks = new Set(posts.map((post) => post.link));
+      console.log('existing links:', existingLinks);
 
-    const newPosts = results.flatMap(({ feedId, posts}) => 
-      posts.filter((post) => !existingLinks.has(post.link))
-      .map((post) => ({
-        ...post,
-        id: nanoid(10),
-        feedId,
-      }))
+      const newPosts = results.flatMap(({ feedId, posts }) =>
+        posts
+          .filter((post) => !existingLinks.has(post.link))
+          .map((post) => ({
+            ...post,
+            id: nanoid(10),
+            feedId,
+          })),
+      );
+      console.log('new posts', newPosts);
+      if (newPosts.length > 0) {
+        watchedState.posts.unshift(...newPosts);
+      }
+      console.log('updated state:', watchedState.posts);
+    })
+    .then(() =>
+      setTimeout(
+        () => updateData(watchedState.feeds, watchedState.posts),
+        5000,
+      ),
     );
-    console.log('new posts', newPosts)
-    if (newPosts.length > 0 ) {
-      watchedState.posts.unshift(...newPosts)
-    }
-    console.log('updated state:', watchedState.posts);
-  })
-  .then(() => setTimeout(() => updateData(watchedState.feeds, watchedState.posts), 5000))
 };
 
 const getError = (error) => {
@@ -95,6 +104,8 @@ const getError = (error) => {
   }
   return 'unknownError';
 };
+
+// controller
 
 const form = document.querySelector('.rss-form.text-body');
 const input = document.getElementById('url-input');
@@ -130,10 +141,13 @@ form.addEventListener('submit', (e) => {
     .then((url) => checkDuplicates(url, watchedState.feeds))
     .then((url) => {
       watchedState.form.isValid = true;
-      watchedState.loading.status = 'loading'; 
+      watchedState.loading.status = 'loading';
       watchedState.form.error = null;
+      watchedState.loading.error = null;
       return loadData(url).then((parsedData) => {
         watchedState.loading.status = 'success';
+        watchedState.loading.error = null;
+        console.log('loading status:', watchedState.loading.status);
         const id = nanoid(10);
         watchedState.feeds.unshift({ id, url, ...parsedData.feed });
         const dataWithId = parsedData.posts.map((post) => {
@@ -141,11 +155,15 @@ form.addEventListener('submit', (e) => {
         });
         watchedState.posts.unshift(...dataWithId);
         watchedState.loading.status = 'idle';
-        updateData(watchedState.feeds, watchedState.posts); 
+        updateData(watchedState.feeds, watchedState.posts);
       });
     })
     .catch((error) => {
-      if (error === 'invalidUrl' || error === 'duplicateRss') {
+      if (
+        error === 'invalidUrl' ||
+        error === 'duplicateRss' ||
+        error === 'emptyUrl'
+      ) {
         watchedState.form.error = error;
         watchedState.form.isValid = false;
         watchedState.loading.status = 'idle';
@@ -153,6 +171,7 @@ form.addEventListener('submit', (e) => {
         return;
       }
       watchedState.loading.status = 'failed';
+      console.log('loading status:', watchedState.loading.status);
       watchedState.loading.error = getError(error);
       watchedState.form.error = null;
     });

@@ -127,7 +127,8 @@ const renderPosts = (posts, ui) => {
     title.appendChild(link)
     if (ui.seenPostsId.includes(post.id)) {
       link.classList.add('fw-normal', 'link-secondary')
-    } else {
+    } 
+    else {
       link.classList.add('fw-bold')
     }
 

@@ -24,7 +24,7 @@ const state = {
     error: null,
   },
   feeds: [], // [{ id, url, title, description }]
-  posts: [], //[{ id, feedId, title, link, description }]
+  posts: [], // [{ id, feedId, title, link, description }]
   ui: {
     activePostId: '',
     seenPostsId: [],
@@ -49,7 +49,6 @@ const validate = (url) => {
     .validate(url)
     .then(() => url)
     .catch((err) => {
-
       return Promise.reject(err.message)
     })
 }
@@ -160,9 +159,9 @@ form.addEventListener('submit', (e) => {
     })
     .catch((error) => {
       if (
-        error === 'invalidUrl' ||
-        error === 'duplicateRss' ||
-        error === 'emptyUrl'
+        error === 'invalidUrl'
+        || error === 'duplicateRss'
+        || error === 'emptyUrl'
       ) {
         watchedState.form.error = error
         watchedState.form.isValid = false

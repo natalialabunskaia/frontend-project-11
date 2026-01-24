@@ -17,7 +17,7 @@ i18nextInstance.init({
         },
         success: {
           valid: 'RSS успешно загружен',
-        }
+        },
       },
     },
   },

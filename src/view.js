@@ -1,6 +1,6 @@
 import i18nextInstance from './i18next.js'
 
-const renderErrors = (state) => {
+const renderErrors = state => {
   const input = document.getElementById('url-input')
   const feedback = document.querySelector('.feedback')
   if (state.form.error === 'invalidUrl') {
@@ -45,7 +45,7 @@ const renderErrors = (state) => {
   }
 }
 
-const renderFeeds = (feeds) => {
+const renderFeeds = feeds => {
   const feedsContainer = document.querySelector('.feeds')
   feedsContainer.innerHTML = ''
   if (feeds.length === 0) {
@@ -68,7 +68,7 @@ const renderFeeds = (feeds) => {
   feedsList.classList.add('list-group', 'border-0', 'rounded-0')
   feedsCard.appendChild(feedsList)
 
-  feeds.forEach((feed) => {
+  feeds.forEach(feed => {
     const liEl = document.createElement('li')
     liEl.classList.add('list-group-item', 'border-0', 'border-end-0')
     feedsList.appendChild(liEl)
@@ -108,7 +108,7 @@ const renderPosts = (posts, ui) => {
   postsList.classList.add('list-group', 'border-0', 'rounded-0')
   postsCard.appendChild(postsList)
 
-  posts.forEach((post) => {
+  posts.forEach(post => {
     const title = document.createElement('li')
     title.classList.add(
       'list-group-item',
@@ -148,7 +148,7 @@ const renderModalWindow = (ui, posts) => {
   const activePostId = ui.activePostId
   if (!ui.activePostId) return
 
-  const post = posts.find((p) => p.id === activePostId)
+  const post = posts.find(p => p.id === activePostId)
 
   const modalTitle = document.querySelector('.modal-title')
   modalTitle.textContent = post.title

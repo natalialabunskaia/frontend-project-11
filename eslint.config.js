@@ -14,7 +14,7 @@ export default defineConfig([
       'stylistic/comma-dangle': ['error', 'always-multiline'], 
       'stylistic/eol-last': ['error', 'always'],
       'stylistic/spaced-comment': ['error', 'always'],
-      'stylistic/arrow-parens': ['error', 'always'],
+      'stylistic/arrow-parens': ['error', 'as-needed'],
       'stylistic/padded-blocks': ['error', 'never'],
       'stylistic/operator-linebreak': ['error', 'before'],
       'stylistic/brace-style': ['error', '1tbs'],

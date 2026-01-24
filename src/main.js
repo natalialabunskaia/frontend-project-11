@@ -31,50 +31,50 @@ const state = {
   },
 }
 
-const watchedState = onChange(state, (path) => {
+const watchedState = onChange(state, path => {
   render(watchedState, path)
 })
 
 const schema = yup.string().trim().required('emptyUrl').url('invalidUrl')
 
 const checkDuplicates = (url, feeds) => {
-  if (feeds.some((element) => element.url === url)) {
+  if (feeds.some(element => element.url === url)) {
     return Promise.reject('duplicateRss')
   }
   return Promise.resolve(url)
 }
 
-const validate = (url) => {
+const validate = url => {
   return schema
     .validate(url)
     .then(() => url)
-    .catch((err) => {
+    .catch(err => {
       return Promise.reject(err.message)
     })
 }
 
-const loadData = (url) => {
+const loadData = url => {
   return axios
     .get(`https://allorigins.hexlet.app/get?disableCache=true&url=${url}`)
-    .then((response) => parseRss(response.data.contents))
+    .then(response => parseRss(response.data.contents))
 }
 
 const updateData = (feeds, posts) => {
-  const requests = feeds.map((feed) => {
-    return loadData(feed.url).then((parsedData) => ({
+  const requests = feeds.map(feed => {
+    return loadData(feed.url).then(parsedData => ({
       feedId: feed.id,
       posts: parsedData.posts,
     }))
   })
   return Promise.all(requests)
-    .then((results) => {
-      const existingLinks = new Set(posts.map((post) => post.link))
+    .then(results => {
+      const existingLinks = new Set(posts.map(post => post.link))
       console.log('existing links:', existingLinks)
 
       const newPosts = results.flatMap(({ feedId, posts }) =>
         posts
-          .filter((post) => !existingLinks.has(post.link))
-          .map((post) => ({
+          .filter(post => !existingLinks.has(post.link))
+          .map(post => ({
             ...post,
             id: nanoid(10),
             feedId,
@@ -94,7 +94,7 @@ const updateData = (feeds, posts) => {
     )
 }
 
-const getError = (error) => {
+const getError = error => {
   if (error.message === 'invalidRss') {
     return 'invalidRss'
   }
@@ -111,7 +111,7 @@ const input = document.getElementById('url-input')
 
 const postsContainer = document.querySelector('.posts')
 
-postsContainer.addEventListener('click', (e) => {
+postsContainer.addEventListener('click', e => {
   const button = e.target.closest('button[data-bs-toggle="modal"]')
   const link = e.target.closest('a[data-id]')
   if (button) {
@@ -128,28 +128,28 @@ postsContainer.addEventListener('click', (e) => {
   return
 })
 
-input.addEventListener('input', (e) => {
+input.addEventListener('input', e => {
   watchedState.form.value = e.target.value
   watchedState.form.isValid = false
 })
 
-form.addEventListener('submit', (e) => {
+form.addEventListener('submit', e => {
   e.preventDefault()
 
   validate(watchedState.form.value)
-    .then((url) => checkDuplicates(url, watchedState.feeds))
-    .then((url) => {
+    .then(url => checkDuplicates(url, watchedState.feeds))
+    .then(url => {
       watchedState.form.isValid = true
       watchedState.loading.status = 'loading'
       watchedState.form.error = null
       watchedState.loading.error = null
-      return loadData(url).then((parsedData) => {
+      return loadData(url).then(parsedData => {
         watchedState.loading.status = 'success'
         watchedState.loading.error = null
         console.log('loading status:', watchedState.loading.status)
         const id = nanoid(10)
         watchedState.feeds.unshift({ id, url, ...parsedData.feed })
-        const dataWithId = parsedData.posts.map((post) => {
+        const dataWithId = parsedData.posts.map(post => {
           return { ...post, id: nanoid(10), feedId: id }
         })
         watchedState.posts.unshift(...dataWithId)
@@ -157,7 +157,7 @@ form.addEventListener('submit', (e) => {
         updateData(watchedState.feeds, watchedState.posts)
       })
     })
-    .catch((error) => {
+    .catch(error => {
       if (
         error === 'invalidUrl'
         || error === 'duplicateRss'

@@ -1,4 +1,4 @@
-const parseRss = xml => {
+const parseRss = (xml) => {
   const parser = new DOMParser()
   const data = parser.parseFromString(xml, 'text/xml')
   const hasParserError = data.querySelector('parsererror')
@@ -14,7 +14,7 @@ const parseRss = xml => {
   const feedDescription = feedElDescription.textContent
 
   const postEls = data.querySelectorAll('item')
-  const posts = Array.from(postEls).map(el => {
+  const posts = Array.from(postEls).map((el) => {
     const titleEl = el.querySelector('title')
     const postTitle = titleEl.textContent
 

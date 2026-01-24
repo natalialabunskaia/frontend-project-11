@@ -1,11 +1,11 @@
-import './style.css';
-import 'bootstrap';
-import * as yup from 'yup';
-import onChange from 'on-change';
-import render from './view.js';
-import parseRss from './parser.js';
-import axios from 'axios';
-import { nanoid } from 'nanoid';
+import './style.css'
+import 'bootstrap'
+import * as yup from 'yup'
+import onChange from 'on-change'
+import render from './view.js'
+import parseRss from './parser.js'
+import axios from 'axios'
+import { nanoid } from 'nanoid'
 
 // model
 const state = {
@@ -29,20 +29,20 @@ const state = {
     activePostId: '',
     seenPostsId: [],
   },
-};
+}
 
 const watchedState = onChange(state, (path) => {
-  render(watchedState, path);
-});
+  render(watchedState, path)
+})
 
-const schema = yup.string().trim().required('emptyUrl').url('invalidUrl');
+const schema = yup.string().trim().required('emptyUrl').url('invalidUrl')
 
 const checkDuplicates = (url, feeds) => {
   if (feeds.some((element) => element.url === url)) {
-    return Promise.reject('duplicateRss');
+    return Promise.reject('duplicateRss')
   }
-  return Promise.resolve(url);
-};
+  return Promise.resolve(url)
+}
 
 const validate = (url) => {
   return schema
@@ -50,27 +50,27 @@ const validate = (url) => {
     .then(() => url)
     .catch((err) => {
 
-      return Promise.reject(err.message);
-    });
-};
+      return Promise.reject(err.message)
+    })
+}
 
 const loadData = (url) => {
   return axios
     .get(`https://allorigins.hexlet.app/get?disableCache=true&url=${url}`)
-    .then((response) => parseRss(response.data.contents));
-};
+    .then((response) => parseRss(response.data.contents))
+}
 
 const updateData = (feeds, posts) => {
   const requests = feeds.map((feed) => {
     return loadData(feed.url).then((parsedData) => ({
       feedId: feed.id,
       posts: parsedData.posts,
-    }));
-  });
+    }))
+  })
   return Promise.all(requests)
     .then((results) => {
-      const existingLinks = new Set(posts.map((post) => post.link));
-      console.log('existing links:', existingLinks);
+      const existingLinks = new Set(posts.map((post) => post.link))
+      console.log('existing links:', existingLinks)
 
       const newPosts = results.flatMap(({ feedId, posts }) =>
         posts
@@ -80,83 +80,83 @@ const updateData = (feeds, posts) => {
             id: nanoid(10),
             feedId,
           })),
-      );
-      console.log('new posts', newPosts);
+      )
+      console.log('new posts', newPosts)
       if (newPosts.length > 0) {
-        watchedState.posts.unshift(...newPosts);
+        watchedState.posts.unshift(...newPosts)
       }
-      console.log('updated state:', watchedState.posts);
+      console.log('updated state:', watchedState.posts)
     })
     .then(() =>
       setTimeout(
         () => updateData(watchedState.feeds, watchedState.posts),
         5000,
       ),
-    );
-};
+    )
+}
 
 const getError = (error) => {
   if (error.message === 'invalidRss') {
-    return 'invalidRss';
+    return 'invalidRss'
   }
   if (error.code === 'ERR_NETWORK') {
-    return 'networkError';
+    return 'networkError'
   }
-  return 'unknownError';
-};
+  return 'unknownError'
+}
 
 // controller
 
-const form = document.querySelector('.rss-form.text-body');
-const input = document.getElementById('url-input');
+const form = document.querySelector('.rss-form.text-body')
+const input = document.getElementById('url-input')
 
-const postsContainer = document.querySelector('.posts');
+const postsContainer = document.querySelector('.posts')
 
 postsContainer.addEventListener('click', (e) => {
-  const button = e.target.closest('button[data-bs-toggle="modal"]');
-  const link = e.target.closest('a[data-id]');
+  const button = e.target.closest('button[data-bs-toggle="modal"]')
+  const link = e.target.closest('a[data-id]')
   if (button) {
-    const id = button.dataset.id;
-    watchedState.ui.activePostId = id;
-    watchedState.ui.seenPostsId.push(id);
+    const id = button.dataset.id
+    watchedState.ui.activePostId = id
+    watchedState.ui.seenPostsId.push(id)
 
-    return;
+    return
   }
   if (link) {
-    const id = link.dataset.id;
-    watchedState.ui.seenPostsId.push(id);
+    const id = link.dataset.id
+    watchedState.ui.seenPostsId.push(id)
   }
-  return;
-});
+  return
+})
 
 input.addEventListener('input', (e) => {
-  watchedState.form.value = e.target.value;
-  watchedState.form.isValid = false;
-});
+  watchedState.form.value = e.target.value
+  watchedState.form.isValid = false
+})
 
 form.addEventListener('submit', (e) => {
-  e.preventDefault();
+  e.preventDefault()
 
   validate(watchedState.form.value)
     .then((url) => checkDuplicates(url, watchedState.feeds))
     .then((url) => {
-      watchedState.form.isValid = true;
-      watchedState.loading.status = 'loading';
-      watchedState.form.error = null;
-      watchedState.loading.error = null;
+      watchedState.form.isValid = true
+      watchedState.loading.status = 'loading'
+      watchedState.form.error = null
+      watchedState.loading.error = null
       return loadData(url).then((parsedData) => {
-        watchedState.loading.status = 'success';
-        watchedState.loading.error = null;
-        console.log('loading status:', watchedState.loading.status);
-        const id = nanoid(10);
-        watchedState.feeds.unshift({ id, url, ...parsedData.feed });
+        watchedState.loading.status = 'success'
+        watchedState.loading.error = null
+        console.log('loading status:', watchedState.loading.status)
+        const id = nanoid(10)
+        watchedState.feeds.unshift({ id, url, ...parsedData.feed })
         const dataWithId = parsedData.posts.map((post) => {
-          return { ...post, id: nanoid(10), feedId: id };
-        });
-        watchedState.posts.unshift(...dataWithId);
-        watchedState.loading.status = 'idle';
-        updateData(watchedState.feeds, watchedState.posts);
-      });
+          return { ...post, id: nanoid(10), feedId: id }
+        })
+        watchedState.posts.unshift(...dataWithId)
+        watchedState.loading.status = 'idle'
+        updateData(watchedState.feeds, watchedState.posts)
+      })
     })
     .catch((error) => {
       if (
@@ -164,15 +164,15 @@ form.addEventListener('submit', (e) => {
         error === 'duplicateRss' ||
         error === 'emptyUrl'
       ) {
-        watchedState.form.error = error;
-        watchedState.form.isValid = false;
-        watchedState.loading.status = 'idle';
-        watchedState.loading.error = null;
-        return;
+        watchedState.form.error = error
+        watchedState.form.isValid = false
+        watchedState.loading.status = 'idle'
+        watchedState.loading.error = null
+        return
       }
-      watchedState.loading.status = 'failed';
-      console.log('loading status:', watchedState.loading.status);
-      watchedState.loading.error = getError(error);
-      watchedState.form.error = null;
-    });
-});
+      watchedState.loading.status = 'failed'
+      console.log('loading status:', watchedState.loading.status)
+      watchedState.loading.error = getError(error)
+      watchedState.form.error = null
+    })
+})
